@@ -8,6 +8,7 @@ import { BASE_SEPOLIA_SCAN_URL } from "../lib/constants";
 import Header from "../components/Header";
 import { mintNFT } from "../lib/nft";
 import { baseSepolia } from "viem/chains";
+import { matchString } from "../lib/discord";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -33,6 +34,27 @@ export default function LoginPage() {
     const toastId = toast.loading("Minting...");
 
     try {
+      // check if the user has already minted an NFT
+
+      // check if user is eligible to mint an NFT (check the discors username)
+      const userDiscordUsername = user?.discord?.username;
+      const isEligible = userDiscordUsername && matchString(userDiscordUsername);
+
+      console.log("isEligible: ", isEligible);
+      console.log("userDiscordUsername: ", userDiscordUsername);
+
+      // if not eligible, show an error message
+      if (!isEligible) {
+        toast.update(toastId, {
+          render: <Alert>You are not eligible to mint an NFT.</Alert>,
+          type: "error",
+          isLoading: false,
+          autoClose: 3000,
+        });
+        setIsMinting(false);
+        return;
+      }
+
       mintNFT(baseSepolia, smartAccountAddress);
 
       toast.update(toastId, {
